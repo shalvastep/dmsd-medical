@@ -1,0 +1,107 @@
+{
+
+    "folders": [
+  
+      {
+  
+        "path": "."
+  
+      }
+  
+    ],
+  
+    "settings": {
+  
+      "editor.codeActionsOnSave": {
+  
+        "source.fixAll.eslint": true
+  
+      },
+  
+      "eslint.validate": [
+  
+        "javascript",
+  
+        "javascriptreact",
+  
+        "typescript",
+  
+        "typescriptereact"
+  
+      ],
+  
+      "typescript.tsdk": "./node_modules/typescript/lib",
+  
+      "files.associations": {
+  
+        "*.js": "javascriptreact"
+  
+      },
+  
+      "files.eol": "\n",
+  
+      "formatContextMenu.closeAfterSave": true,
+  
+      "typescriptHero.imports.organizeOnSave": false,
+  
+      "typescriptHero.imports.organizeSortsByFirstSpecifier": false,
+  
+      "editor.formatOnSave": true,
+  
+      "editor.formatOnType": true,
+  
+      "eslint.enable": true,
+  
+      "eslint.alwaysShowStatus": true,
+  
+      "importSorter.importStringConfiguration.tabType": "tab",
+  
+      "importSorter.generalConfiguration.sortOnBeforeSave": true,
+  
+      "importSorter.sortConfiguration.customOrderingRules.disableDefaultOrderSort": false,
+  
+      "importSorter.sortConfiguration.importMembers.order": "unsorted",
+  
+      "importSorter.importStringConfiguration.maximumNumberOfImportExpressionsPerLine.count": 175,
+  
+      "importSorter.sortConfiguration.removeUnusedImports": true,
+  
+      "importSorter.importStringConfiguration.maximumNumberOfImportExpressionsPerLine.type": "newLineEachExpressionAfterCountLimit",
+  
+      "importSorter.importStringConfiguration.trailingComma": "none",
+  
+      "workbench.editor.enablePreview": false,
+  
+      "typescript.suggest.completeFunctionCalls": true,
+  
+      "typescript.preferences.importModuleSpecifier": "non-relative",
+  
+      "files.autoSave": "off",
+  
+      "files.autoSaveDelay": 30000,
+  
+      "files.refactoring.autoSave": true,
+  
+      "files.exclude": {
+  
+        "**/.classpath": true,
+  
+        "**/.project": true,
+  
+        "**/.settings": true,
+  
+        "**/.factorypath": true
+  
+      },
+  
+      "editor.bracketPairColorization.enabled": true
+  
+    },
+  
+    "launch": {
+  
+      "configurations": []
+  
+    }
+  
+  }
