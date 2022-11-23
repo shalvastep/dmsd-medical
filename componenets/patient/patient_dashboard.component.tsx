@@ -9,12 +9,14 @@ import { InputMask } from 'primereact/inputmask';
 import { Patient } from 'models/patient.model';
 import axios, { AxiosResponse } from 'axios';
 import config from 'utils/config';
+import { ProgressSpinner } from 'primereact/progressspinner';
 
 import { Toast } from 'primereact/toast';
 
 const PatientDash: React.FC = () => {
 	const toast: React.MutableRefObject<any> = useRef(this);
 	const [modalOpen, setModalOpen] = useState(false);
+	const [loading, setLoading] = useState(false);
 	const [firstName, setFirstName] = useState<string>('');
 	const [lastName, setLastName] = useState<string>('');
 	const [dob, setDOB] = useState<string>('');
@@ -26,7 +28,7 @@ const PatientDash: React.FC = () => {
 
 	const handleAddPatient: () => void = async () => {
 		setModalOpen(false);
-
+		setLoading(true);
 		const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/create`;
 
 		try {
@@ -42,30 +44,42 @@ const PatientDash: React.FC = () => {
 
 			if (response.data.data.patientId) {
 				toast.current.show({ severity: 'success', summary: 'Success Message', detail: 'Patient has been successfully registered.' });
+				clearForm();
 			} else {
 				toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
 			}
 		} catch (e) {
+			setLoading(false);
 			toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
 		}
+		setLoading(false);
+	};
+
+	const loadPatients: () => Promise<any> = async () => {
+		setLoading(true);
+		try {
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/all`;
+			const response: AxiosResponse<any> = await axios.get(endpoint);
+
+			// response.data.data.forEach((elem) => console.log(elem.patientId, elem.patientIllness));
+
+			if (response.data.data.length) {
+				setPatients(response.data.data);
+			} else {
+				toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
+			}
+		} catch (e) {
+			setLoading(false);
+			toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
+		}
+		setLoading(false);
 	};
 
 	useEffect(() => {
 		(async () => {
-			try {
-				const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/all`;
-				const response: AxiosResponse<any> = await axios.get(endpoint);
-
-				if (response.data.data.length) {
-					setPatients(response.data.data);
-				} else {
-					toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
-				}
-			} catch (e) {
-				toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
-			}
+			await loadPatients();
 		})();
-	});
+	}, []);
 
 	const clearForm: () => void = () => {
 		setFirstName('');
@@ -86,13 +100,15 @@ const PatientDash: React.FC = () => {
 		return rowData[key] || 'N/A';
 	};
 
-	const header = (
+	const paginatorLeft = <Button type='button' icon='pi pi-refresh' className='p-button-text' onClick={loadPatients} />;
+
+	const header: any = (
 		<div className='table-header-container'>
 			<Button icon='pi pi-plus' label='Add Patient' onClick={() => setModalOpen(true)} className='mr-2' />
 		</div>
 	);
 
-	const footer = (
+	const footer: any = (
 		<div>
 			<Button label='Save' icon='pi pi-check' onClick={handleAddPatient} />
 			<Button label='Cancel' icon='pi pi-times' onClick={onHide} />
@@ -102,9 +118,21 @@ const PatientDash: React.FC = () => {
 	return (
 		<div>
 			<Toast ref={toast} />
-			<div className='card'>
-				<DataTable value={patients} responsiveLayout='scroll' header={header}>
-					<Column field='firstName' header='First Name' body={(dt) => handleNoValue(dt, 'address')}></Column>
+			<div className='card' style={{ height: 'calc(100vh - 145px)' }}>
+				<DataTable
+					value={patients}
+					responsiveLayout='scroll'
+					header={header}
+					scrollable
+					scrollHeight='flex'
+					paginator
+					paginatorTemplate='CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown'
+					currentPageReportTemplate='Showing {first} to {last} of {totalRecords}'
+					rows={10}
+					rowsPerPageOptions={[5, 10, 20, 50]}
+					paginatorLeft={paginatorLeft}
+				>
+					<Column field='firstName' header='First Name' body={(dt) => handleNoValue(dt, 'firstName')}></Column>
 					<Column field='lastName' header='Last Name' body={(dt) => handleNoValue(dt, 'lastName')}></Column>
 					<Column field='gender' header='Gender' body={(dt) => handleNoValue(dt, 'gender')}></Column>
 					<Column field='telephone' header='Telephone' body={(dt) => handleNoValue(dt, 'telephone')}></Column>
@@ -112,6 +140,10 @@ const PatientDash: React.FC = () => {
 					<Column field='ssn' header='SSN' body={(dt) => handleNoValue(dt, 'ssn')}></Column>
 				</DataTable>
 			</div>
+			<ProgressSpinner
+				animationDuration='1s'
+				style={loading ? { position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)' } : { display: 'none' }}
+			/>
 			<Dialog
 				header='Enter Patient Information'
 				footer={footer}
