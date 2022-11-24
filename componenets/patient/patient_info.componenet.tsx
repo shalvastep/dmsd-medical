@@ -21,7 +21,7 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 	const toast: React.MutableRefObject<any> = useRef(this);
 	const [patient, setPatient] = useState<Patient>(null);
 	const [illness, setIllness] = useState<Illness[]>([]);
-	const [allergys, setAllergy] = useState<Allergy[]>([]);
+	const [allergy, setAllergy] = useState<Allergy[]>([]);
 
 	const loadPatientIllness: (patient: Patient) => Promise<any> = async (patient: Patient) => {
 		try {
@@ -71,11 +71,11 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 		if (patientId) {
 			try {
 				(async () => {
-					const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/id`;
+					const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/${patientId}`;
 
-					const response: AxiosResponse<any> = await axios.post(endpoint, {
-						patientId: patientId
-					});
+					const response: AxiosResponse<any> = await axios.post(endpoint, {});
+
+					console.log(response);
 
 					if (response.data.data) {
 						setPatient(response.data.data);
@@ -116,7 +116,7 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 			<Toast ref={toast} />
 			<div className='grid'>
 				<div className='col-4'>
-					<Card className='mt-5' header={header} footer={footer}>
+					<Card className='mt-5' header={header} footer={illness.length || allergy.length ? null : footer}>
 						{patient ? (
 							<>
 								<div style={{ padding: '.2em' }}>
@@ -178,7 +178,7 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 						<div className='col-12'>
 							<Card className=''>
 								<div className='card'>
-									<DataTable value={allergys} header='Patient Allergy Information' size='small' responsiveLayout='scroll'>
+									<DataTable value={allergy} header='Patient Allergy Information' size='small' responsiveLayout='scroll'>
 										<Column field='allergyId' header='Allergy ID'></Column>
 										<Column field='code' header='Code'></Column>
 										<Column field='name' header='Name'></Column>

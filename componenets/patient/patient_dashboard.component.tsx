@@ -34,7 +34,7 @@ const PatientDash: React.FC = () => {
 	const handleAddPatient: () => void = async () => {
 		setModalOpen(false);
 		setLoading(true);
-		const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/create`;
+		const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient`;
 
 		try {
 			const response: AxiosResponse<any> = await axios.post(endpoint, {
@@ -63,7 +63,7 @@ const PatientDash: React.FC = () => {
 	const loadPatients: () => Promise<any> = async () => {
 		setLoading(true);
 		try {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/all`;
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient`;
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
 			// response.data.data.forEach((elem) => console.log(elem.patientId, elem.patientIllness));
