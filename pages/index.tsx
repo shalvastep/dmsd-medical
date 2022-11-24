@@ -36,7 +36,7 @@ const Home: React.FC = () => {
 				<div className='col-4'>
 					<Card>
 						<h3>Clinic Staff Management</h3>
-						<Button label='view' onClick={() => alert('jjj')} />
+						<Button label='view' onClick={() => router.push({ pathname: '/staff/dashboard' })} />
 					</Card>
 				</div>
 			</div>

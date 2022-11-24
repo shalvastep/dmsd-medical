@@ -128,7 +128,7 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 								</div>
 
 								<div style={{ padding: '.2em' }}>
-									<Avatar icon='pi pi-angle-right' style={{ width: '70px' }} label='ID:' />
+									<Avatar icon='pi pi-angle-right' style={{ width: '70px' }} label='Patient #:' />
 									<span style={{ paddingLeft: '.2em' }}> {patientId || 'N/A'}</span>
 								</div>
 
