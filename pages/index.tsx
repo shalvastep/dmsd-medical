@@ -5,8 +5,6 @@ import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { useRouter } from 'next/router';
 import React from 'react';
-import { Menubar } from 'primereact/menubar';
-import config from 'utils/config';
 
 const Home: React.FC = () => {
 	const router: NextRouter = useRouter();

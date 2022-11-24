@@ -10,11 +10,16 @@ import { Patient } from 'models/patient.model';
 import axios, { AxiosResponse } from 'axios';
 import config from 'utils/config';
 import { ProgressSpinner } from 'primereact/progressspinner';
-
+import { Menu } from 'primereact/menu';
 import { Toast } from 'primereact/toast';
+import { MenuItem } from 'primereact/menuitem';
+import { NextRouter, useRouter } from 'next/router';
 
 const PatientDash: React.FC = () => {
+	const router: NextRouter = useRouter();
 	const toast: React.MutableRefObject<any> = useRef(this);
+	const menu: React.MutableRefObject<any> = useRef(this);
+	const [actionMenu, setActionMenu] = useState([]);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [firstName, setFirstName] = useState<string>('');
@@ -43,14 +48,14 @@ const PatientDash: React.FC = () => {
 			});
 
 			if (response.data.data.patientId) {
-				toast.current.show({ severity: 'success', summary: 'Success Message', detail: 'Patient has been successfully registered.' });
+				toast.current.show({ severity: 'success', summary: '', detail: 'Patient has been successfully registered.' });
 				clearForm();
 			} else {
-				toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
+				toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while registering new patient' });
 			}
 		} catch (e) {
 			setLoading(false);
-			toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
+			toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while registering new patient' });
 		}
 		setLoading(false);
 	};
@@ -66,11 +71,11 @@ const PatientDash: React.FC = () => {
 			if (response.data.data.length) {
 				setPatients(response.data.data);
 			} else {
-				toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
+				toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while loading patients' });
 			}
 		} catch (e) {
 			setLoading(false);
-			toast.current.show({ severity: 'error', summary: 'Success Message', detail: 'Something went wrong while registering new patient' });
+			toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while loading patients' });
 		}
 		setLoading(false);
 	};
@@ -102,11 +107,44 @@ const PatientDash: React.FC = () => {
 
 	const paginatorLeft = <Button type='button' icon='pi pi-refresh' className='p-button-text' onClick={loadPatients} />;
 
-	const header: any = (
+	const header: JSX.Element = (
 		<div className='table-header-container'>
 			<Button icon='pi pi-plus' label='Add Patient' onClick={() => setModalOpen(true)} className='mr-2' />
 		</div>
 	);
+
+	const handleMenuClick: (rawData: any) => void = (rawData: any) => {
+		const menuItems: MenuItem[] = [];
+		const scheduleAppointment: MenuItem = {
+			label: 'Schedule an appointment',
+			icon: 'pi pi-fw pi-plus',
+			command: () => {
+				// router.push({ pathname: '/patient/info', query: { patientId: rawData.patientId } });
+				router.push({ pathname: `/patient/info/${rawData.patientId}` });
+			}
+		};
+
+		menuItems.push(scheduleAppointment);
+
+		setActionMenu(menuItems);
+	};
+
+	const actionBodyTemplate: (rowData: any) => JSX.Element = (rowData: any) => {
+		return (
+			<React.Fragment>
+				{/* <Button icon='pi' className='pi-bars' onClick={() => confirmDeleteProduct(rowData)} /> */}
+				<Menu model={actionMenu} popup ref={menu} />
+				<Button
+					label=''
+					icon='pi pi-bars'
+					onClick={(event) => {
+						menu.current.toggle(event);
+						handleMenuClick(rowData);
+					}}
+				/>
+			</React.Fragment>
+		);
+	};
 
 	const footer: any = (
 		<div>
@@ -138,6 +176,7 @@ const PatientDash: React.FC = () => {
 					<Column field='telephone' header='Telephone' body={(dt) => handleNoValue(dt, 'telephone')}></Column>
 					<Column field='address' header='address' body={(dt) => handleNoValue(dt, 'address')}></Column>
 					<Column field='ssn' header='SSN' body={(dt) => handleNoValue(dt, 'ssn')}></Column>
+					<Column header='Action' body={(dt) => actionBodyTemplate(dt)} exportable={false} style={{ minWidth: '8rem' }}></Column>
 				</DataTable>
 			</div>
 			<ProgressSpinner

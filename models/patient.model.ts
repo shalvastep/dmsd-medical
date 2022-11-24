@@ -1,3 +1,6 @@
+import { Allergy } from 'models/allergy.model';
+import { Illness } from 'models/illness.nodel';
+
 export type Patient = {
 	patientId: number;
 	firstName: string;
@@ -7,4 +10,6 @@ export type Patient = {
 	ssn: string;
 	address: string;
 	telephone: string;
+	illness?: Illness[];
+	allergy?: Allergy[];
 };
