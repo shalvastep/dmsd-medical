@@ -1,0 +1,22 @@
+export type Employee = {
+	clinicId?: number;
+	employeeNumber: number;
+	firstName: string;
+	lastName: string;
+	gender: string;
+	address: string;
+	phoneNumber: string;
+	occupationId: number;
+	contractTypeId: number;
+	specialtyId: number;
+	salary: number;
+	dob: string;
+	ssn: string;
+	nurseGradeId: number;
+	yearsExperience: number;
+	isOwner: boolean;
+	isActive: boolean;
+	shiftId: number;
+	maxAllocatedPatient: number;
+	minAllocatedPatient: number;
+};

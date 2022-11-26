@@ -1,5 +1,5 @@
 import { Allergy } from 'models/allergy.model';
-import { Illness } from 'models/illness.nodel';
+import { Illness } from 'models/illness.model';
 
 export type Patient = {
 	patientId: number;

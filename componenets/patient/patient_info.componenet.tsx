@@ -5,7 +5,7 @@ import { Toast } from 'primereact/toast';
 
 import { Card } from 'primereact/card';
 import { Patient } from 'models/patient.model';
-import { Illness } from 'models/illness.nodel';
+import { Illness } from 'models/illness.model';
 import { Button } from 'primereact/button';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';

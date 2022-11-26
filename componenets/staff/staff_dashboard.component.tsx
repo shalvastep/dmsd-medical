@@ -11,23 +11,62 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Dropdown } from 'primereact/dropdown';
 import { Slider } from 'primereact/slider';
 import { FormatMoney } from 'format-money-js';
+import randomInteger from 'random-int';
+import { InputNumber } from 'primereact/inputnumber';
+import config from 'utils/config';
+import axios, { AxiosResponse } from 'axios';
+import { Toast } from 'primereact/toast';
+import { Employee } from 'models/employee.model';
+import { EmployeeSpecialty } from 'models/employee.specialty.model';
+import { SurgeonContract } from 'models/surgeon.contract.model';
 
 const StafftDash: React.FC = () => {
+	const toast: React.MutableRefObject<any> = useRef(this);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [firstName, setFirstName] = useState<string>('');
 	const [lastName, setLastName] = useState<string>('');
 	const [gender, setGender] = useState<string>('');
 	const [emplType, setEmplType] = useState<string>('');
-	const [emolNo, setEmplNo] = useState<string>('');
+	const [emplNo, setEmplNo] = useState<number>(null);
 	const [dob, setDOB] = useState<string>('');
 	const [ssn, setSSN] = useState<string>('');
 	const [address, setAddress] = useState<string>('');
 	const [tel, setTel] = useState<string>('');
-	const [speciality, setSpeciality] = useState<string>('');
-	const [contract, setContract] = useState<string>('');
+	const [specialty, setSpecialty] = useState<EmployeeSpecialty>(null);
+	const [surgeonContract, setSuregonContract] = useState<SurgeonContract>(null);
 	const [nurseGrade, setNurseGrade] = useState<string>('');
-	const [nurseExpYears, setNurseExpYears] = useState<string>('');
+	const [nurseExpYears, setNurseExpYears] = useState<string>(null);
 	const [salary, setSalary] = useState(null);
+	const [employeeSpecialtyData, setEmployeeSpecialtyData] = useState<EmployeeSpecialty[]>([]);
+	const [surgeonContractsData, setSurgeonContractsData] = useState<SurgeonContract[]>([]);
+
+	useEffect(() => {
+		console.log(modalOpen);
+		(async () => {
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/specialty`;
+
+			const response: AxiosResponse<any> = await axios.get(endpoint);
+
+			if (response.data.data.length) {
+				setEmployeeSpecialtyData(response.data.data);
+			}
+			console.log(response);
+		})();
+
+		(async () => {
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/surgeon-contract`;
+
+			const response: AxiosResponse<any> = await axios.get(endpoint);
+
+			if (response.data.data.length) {
+				response.data.data.forEach((contract: any) => {
+					contract.typeYear = `${contract.contractType} - ${contract.contractLength}(Years)`;
+				});
+				setSurgeonContractsData(response.data.data);
+			}
+			console.log(response);
+		})();
+	}, []);
 
 	const products = [{ code: 'test', name: 'bazo' }];
 
@@ -37,10 +76,57 @@ const StafftDash: React.FC = () => {
 		setGender('');
 		setAddress('');
 		setTel('');
-		setEmplNo('');
+		setEmplNo(null);
 		setSSN('');
 		setDOB('');
 		setEmplType('');
+		setNurseExpYears('');
+		setSuregonContract(null);
+	};
+
+	const handleAddEmployee: () => void = async () => {
+		// setModalOpen(false);
+		// setLoading(true);
+		const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee`;
+
+		const employee: Employee = {
+			firstName: firstName,
+			lastName: lastName,
+			phoneNumber: tel,
+			gender: gender,
+			ssn: ssn,
+			dob: dob,
+			specialtyId: specialty.specialityId,
+			salary: salary,
+			employeeNumber: 123 || emplNo,
+			yearsExperience: Number(nurseExpYears),
+			address: address,
+			occupationId: 0,
+			contractTypeId: surgeonContract.contractTypeId,
+			nurseGradeId: 0,
+			isOwner: false,
+			isActive: false,
+			shiftId: 0,
+			maxAllocatedPatient: 0,
+			minAllocatedPatient: 0
+		};
+
+		console.log('----->>>>>', employee);
+
+		// try {
+		// 	const response: AxiosResponse<any> = await axios.post(endpoint, employee);
+
+		// 	if (response.data.data.patientId) {
+		// 		toast.current.show({ severity: 'success', summary: '', detail: 'Patient has been successfully registered.' });
+		// 		clearForm();
+		// 	} else {
+		// 		toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while registering new patient' });
+		// 	}
+		// } catch (e) {
+		// 	// setLoading(false);
+		// 	toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while registering new patient' });
+		// }
+		// setLoading(false);
 	};
 
 	const onHide: () => void = () => {
@@ -56,7 +142,7 @@ const StafftDash: React.FC = () => {
 
 	const footer: any = (
 		<div>
-			<Button label='Save' icon='pi pi-check' onClick={() => alert('adding')} />
+			<Button label='Save' icon='pi pi-check' onClick={() => handleAddEmployee()} />
 			<Button label='Cancel' icon='pi pi-times' onClick={onHide} />
 		</div>
 	);
@@ -71,6 +157,7 @@ const StafftDash: React.FC = () => {
 
 	return (
 		<>
+			<Toast ref={toast} />
 			<div>
 				<div className='card'>
 					<DataTable value={products} header={header} responsiveLayout='scroll'>
@@ -157,7 +244,7 @@ const StafftDash: React.FC = () => {
 						<div className='col-12'>
 							<div className='mt-5'>
 								<span className='mt-3' style={{ display: 'inline-block' }}>
-									Employemnt Type:{' '}
+									Occupation Type:{' '}
 								</span>
 								<span className=''>
 									<span className='ml-1'>
@@ -185,11 +272,23 @@ const StafftDash: React.FC = () => {
 									Speciality:
 								</label>
 								{/* <InputTextarea className='mt-1' id='spec' rows={5} cols={40} value={speciality} onChange={(e) => setSpeciality(e.target.value)} autoResize /> */}
-								<Dropdown optionLabel='name' value={contract} options={cities} onChange={(e) => setSpeciality(e.value)} placeholder='Select a Speciality' />
+								<Dropdown
+									optionLabel='specialty'
+									value={specialty}
+									options={employeeSpecialtyData}
+									onChange={(e) => setSpecialty(e.value)}
+									placeholder='Select a Speciality'
+								/>
 							</div>
 							{emplType === 'S' ? (
 								<div className='col-6 mt-3'>
-									<Dropdown optionLabel='name' value={contract} options={cities} onChange={(e) => setContract(e.value)} placeholder='Select a Contract' />
+									<Dropdown
+										optionLabel='typeYear'
+										value={surgeonContract}
+										options={surgeonContractsData}
+										onChange={(e) => setSuregonContract(e.value)}
+										placeholder='Select a Contract'
+									/>
 								</div>
 							) : (
 								<div className='col-6'>
@@ -208,7 +307,7 @@ const StafftDash: React.FC = () => {
 					) : emplType === 'N' ? (
 						<div className='grid mt-3'>
 							<div className='col-4 mt-3'>
-								<Dropdown optionLabel='name' value={contract} options={cities} onChange={(e) => setNurseGrade(e.value)} placeholder='Select Grade' />
+								<Dropdown optionLabel='name' value={surgeonContract} options={cities} onChange={(e) => setNurseGrade(e.value)} placeholder='Select Grade' />
 							</div>
 							<div className='col-4 mt-3'>
 								<span className='p-float-label'>
