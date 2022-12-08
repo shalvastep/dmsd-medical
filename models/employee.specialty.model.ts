@@ -1,4 +1,4 @@
 export type EmployeeSpecialty = {
-	specialityId: number;
-	specialty: number;
+	specialtyId: number;
+	specialty?: number;
 };

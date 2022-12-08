@@ -1,22 +1,30 @@
+import { EmployeeShift } from 'models/employee.shift.model';
+import { EmployeeSpecialty } from 'models/employee.specialty.model';
+import { NurseGrade } from 'models/nure.grade.mode';
+import { Occupation } from 'models/occupation.model';
+import { SurgeonContract } from 'models/surgeon.contract.model';
+
 export type Employee = {
 	clinicId?: number;
-	employeeNumber: number;
+	clinicEmployeeId?: number;
+	employeeNumber: string;
 	firstName: string;
 	lastName: string;
 	gender: string;
 	address: string;
 	phoneNumber: string;
-	occupationId: number;
-	contractTypeId: number;
-	specialtyId: number;
+	specialty: EmployeeSpecialty;
 	salary: number;
 	dob: string;
 	ssn: string;
-	nurseGradeId: number;
 	yearsExperience: number;
 	isOwner: boolean;
 	isActive: boolean;
 	shiftId: number;
 	maxAllocatedPatient: number;
 	minAllocatedPatient: number;
+	occupation: Occupation;
+	contract: SurgeonContract;
+	nurseGrade: NurseGrade;
+	employeeShift: EmployeeShift[];
 };
