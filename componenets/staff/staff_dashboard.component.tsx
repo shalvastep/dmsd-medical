@@ -188,7 +188,7 @@ const StafftDash: React.FC = () => {
 			shiftId: null,
 			maxAllocatedPatient: 0,
 			minAllocatedPatient: 0,
-			shifts: null
+			employeeShift: null
 		};
 
 		try {

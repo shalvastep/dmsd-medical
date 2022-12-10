@@ -1,19 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { RadioButton } from 'primereact/radiobutton';
-import { InputMask } from 'primereact/inputmask';
-import { Patient } from 'models/patient.model';
 import axios, { AxiosResponse } from 'axios';
-import config from 'utils/config';
-import { ProgressSpinner } from 'primereact/progressspinner';
-import { Menu } from 'primereact/menu';
-import { Toast } from 'primereact/toast';
-import { MenuItem } from 'primereact/menuitem';
+import { Patient } from 'models/patient.model';
 import { NextRouter, useRouter } from 'next/router';
+import { Button } from 'primereact/button';
+import { Column } from 'primereact/column';
+import { DataTable } from 'primereact/datatable';
+import { Dialog } from 'primereact/dialog';
+import { InputMask } from 'primereact/inputmask';
+import { InputText } from 'primereact/inputtext';
+import { Menu } from 'primereact/menu';
+import { MenuItem } from 'primereact/menuitem';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { RadioButton } from 'primereact/radiobutton';
+import { Toast } from 'primereact/toast';
+import React, { useState, useRef, useEffect } from 'react';
+import config from 'utils/config';
 
 const PatientDash: React.FC = () => {
 	const router: NextRouter = useRouter();
@@ -66,8 +66,6 @@ const PatientDash: React.FC = () => {
 			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient`;
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
-			// response.data.data.forEach((elem) => console.log(elem.patientId, elem.patientIllness));
-
 			if (response.data.data.length) {
 				setPatients(response.data.data);
 			} else {
@@ -116,7 +114,7 @@ const PatientDash: React.FC = () => {
 	const handleMenuClick: (rawData: any) => void = (rawData: any) => {
 		const menuItems: MenuItem[] = [];
 		const scheduleAppointment: MenuItem = {
-			label: 'Schedule an appointment',
+			label: 'View',
 			icon: 'pi pi-fw pi-plus',
 			command: () => {
 				// router.push({ pathname: '/patient/info', query: { patientId: rawData.patientId } });
