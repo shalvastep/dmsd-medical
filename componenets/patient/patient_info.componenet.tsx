@@ -1,7 +1,9 @@
 import axios, { AxiosResponse } from 'axios';
 import { Allergy } from 'models/allergy.model';
+import { Consultation } from 'models/consultation.model';
 import { Illness } from 'models/illness.model';
 import { Patient } from 'models/patient.model';
+import CliniConstants from 'models/shared/client.constants';
 import moment from 'moment';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
@@ -40,72 +42,30 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 	const [appointmentDate, setAppointmentDate] = useState(null);
 	const [appointmentTime, setAppointmentTime] = useState(null);
 	const [doctors, setDoctors] = useState(null);
+	const [selectedDoctor, setSelectedDoctor] = useState(null);
+	const [consultations, setConsultations] = useState(null);
 
 	let today = new Date();
 	let invalidDates = [today];
 
 	const header: JSX.Element = <h4 style={{ textAlign: 'center' }}>Patient Information</h4>;
 
-	const loadPatientIllness: (patient: Patient) => Promise<any> = async (patient: Patient) => {
-		try {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/illness/ids`;
-
-			const dataIn: Illness[] = patient.illness.map((patientIllness: Illness) => {
-				return {
-					illnessId: patientIllness.illnessId
-				};
-			});
-
-			const response: AxiosResponse<any> = await axios.post(endpoint, dataIn);
-
-			console.log('Ilness ^^^', response);
-
-			if (response.data.data.length) {
-				setIllness(response.data.data);
-			} else {
-				toast.current.show({ severity: 'error', summary: '', detail: "Something went wrong while loading patient's illness information" });
-			}
-		} catch (e) {
-			toast.current.show({ severity: 'error', summary: '', detail: "Something went wrong while loading patient's illness information" });
-		}
-	};
-
-	const loadPatientAllergies: (patient: Patient) => Promise<any> = async (patient: Patient) => {
-		try {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/allergy/ids`;
-
-			const dataIn: Allergy[] = patient.allergy.map((patientAllergy: Allergy) => {
-				return {
-					allergyId: patientAllergy.allergyId
-				};
-			});
-
-			const response: AxiosResponse<any> = await axios.post(endpoint, dataIn);
-
-			if (response.data.data.length) {
-				setAllergy(response.data.data);
-			} else {
-				toast.current.show({ severity: 'error', summary: '', detail: "Something went wrong while loading patient's allergy information" });
-			}
-		} catch (e) {
-			toast.current.show({ severity: 'error', summary: '', detail: "Something went wrong while loading patient's allergy information" });
-		}
-	};
-
 	const loadEmployees: () => Promise<any> = async () => {
 		setLoading(true);
 		try {
-			// const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee`;
+			// TODO occupation 2 is doctor
 			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/occupation/2`;
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
-			console.log('doctors', response);
-
-			// if (response.data.data.length) {
-			// 	setDoctors(response.data.data);
-			// } else {
-			// 	toast.current.show({ severity: 'error', summary: '', detail: "Something went wrong while loading doctor's details" });
-			// }
+			if (response.data.data.length) {
+				setDoctors(
+					response.data.data.map((doctor: any) => {
+						return { label: `DR. ${doctor.lastName} ${doctor.firstName}`, value: doctor.clinicEmployeeId };
+					})
+				);
+			} else {
+				toast.current.show({ severity: 'error', summary: '', detail: "Something went wrong while loading doctor's details" });
+			}
 		} catch (e) {
 			setLoading(false);
 			toast.current.show({ severity: 'error', summary: '', detail: "Something went wrong while loading doctor's details" });
@@ -121,8 +81,6 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 
 					const response: AxiosResponse<any> = await axios.post(endpoint, {});
 
-					console.log('Patient data loaded', response);
-
 					if (response.data.data) {
 						setPatient(response.data.data);
 						toast.current.show({ severity: 'success', summary: '', detail: 'Patient information loaded' });
@@ -133,6 +91,10 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 
 						if (response.data.data.allergy) {
 							setAllergy(response.data.data.allergy);
+						}
+
+						if (response.data.data.consultation) {
+							setConsultations(response.data.data.consultation);
 						}
 					} else {
 						toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while loading patient data' });
@@ -159,8 +121,6 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 
 				const response: AxiosResponse<any> = await axios.get(endpoint);
 
-				console.log('->>>>>', response);
-
 				if (response.data.data.length) {
 					setAllIllness(
 						response.data.data.map((illness: Illness) => {
@@ -182,8 +142,6 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 				const endpoint: string = `${config.serverHost}/${config.serverApiPath}/allergy`;
 
 				const response: AxiosResponse<any> = await axios.get(endpoint);
-
-				console.log('->>>>> Allergies', response);
 
 				if (response.data.data.length) {
 					setAllAllergies(
@@ -224,8 +182,6 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 				const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/allergy/save?patientId=${patientId}&allergyId=${allergyId}`;
 
 				const response: AxiosResponse<any> = await axios.post(endpoint);
-
-				console.log('Added allergy', response);
 
 				if (response.data.data === 1) {
 					toast.current.show({ severity: 'success', summary: '', detail: 'Patient allergy saved' });
@@ -274,6 +230,48 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 		}
 	};
 
+	const deletePatientConsultation: (consultationId: number) => Promise<void> = async (consultationId) => {
+		try {
+			(async () => {
+				const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/appt/delete?consultationId=${consultationId}`;
+
+				const response: AxiosResponse<any> = await axios.post(endpoint);
+
+				if (response.data.metadata.success) {
+					toast.current.show({ severity: 'success', summary: '', detail: "Patient's appointment removed" });
+				} else {
+					toast.current.show({ severity: 'error', summary: '', detail: "Something went wrong while deleting patient's appointment" });
+				}
+			})();
+		} catch (e) {
+			toast.current.show({ severity: 'error', summary: '', detail: "Something went wrong while deleting patient's appointment" });
+		}
+	};
+
+	const savePatientAppointment: () => Promise<void> = async () => {
+		try {
+			(async () => {
+				const endpoint: string = `${config.serverHost}/${config.serverApiPath}/patient/appt/add`;
+				const consultation: Consultation = {
+					patientId: patientId,
+					physicianId: selectedDoctor,
+					consultationDate: moment(
+						`${moment(appointmentDate).format('YYYY-MM-DD')} ${moment(appointmentTime).format('HH:mm:ss. SSSZ')}`,
+						CliniConstants.DATE_FORMAT_YYYY_MM_DDTHH_MM_SS_SSSZ
+					).format()
+				};
+				const response: AxiosResponse<any> = await axios.post(endpoint, consultation);
+				if (response.data.data) {
+					toast.current.show({ severity: 'success', summary: '', detail: 'Patient appointment saved' });
+				} else {
+					toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while setting appointment for patient' });
+				}
+			})();
+		} catch (e) {
+			toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while setting appointment for patient' });
+		}
+	};
+
 	const handleDiagnoseModal: () => void = async () => {
 		setShowDiagnoseModal(true);
 
@@ -316,8 +314,6 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 		setSelectedIllness(null);
 	};
 
-	const clearSchedule = () => {};
-
 	const saveDiagnose = async () => {
 		clearAlergyIllnessModal();
 		setShowDiagnoseModal(false);
@@ -331,11 +327,23 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 		await loadPatient(patientId);
 	};
 
+	const clearAppointmentFields = () => {
+		setSelectedDoctor(null);
+		setAppointmentDate(null);
+		setAppointmentTime(null);
+	};
+
+	const saveAppointment = async () => {
+		setShowScheduleModal(false);
+		await savePatientAppointment();
+		await loadPatient(patientId);
+		clearAppointmentFields();
+	};
+
 	const renderScheduleFooter = () => {
 		return (
 			<div>
-				<Button label='No' icon='pi pi-times' onClick={() => onHideSchedule()} className='p-button-text' />
-				<Button label='Yes' icon='pi pi-check' onClick={() => onHideSchedule()} autoFocus />
+				<Button label='Save' icon='pi pi-check' onClick={() => saveAppointment()} autoFocus />
 			</div>
 		);
 	};
@@ -348,8 +356,9 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 		);
 	};
 
-	const onHideSchedule = () => {
+	const onHideSchedule = async () => {
 		setShowScheduleModal(false);
+		clearAppointmentFields();
 	};
 
 	const onHideDiagnose = async () => {
@@ -362,7 +371,6 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 	};
 
 	const onAllergyChange = (e) => {
-		console.log('Allergy change', e);
 		setSelectedAllergy(e.value);
 	};
 
@@ -389,6 +397,22 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 			icon: 'pi pi-fw pi-minus',
 			command: async () => {
 				await deletePatientAllergy(patientId, rawData.allergyId);
+				await loadPatient(patientId);
+			}
+		};
+
+		menuItems.push(scheduleAppointment);
+
+		setActionMenu(menuItems);
+	};
+
+	const handleConsultationMenuClick: (rawData: any) => void = async (rawData: any) => {
+		const menuItems: MenuItem[] = [];
+		const scheduleAppointment: MenuItem = {
+			label: 'Remove',
+			icon: 'pi pi-fw pi-minus',
+			command: async () => {
+				await deletePatientConsultation(rawData.consultationId);
 				await loadPatient(patientId);
 			}
 		};
@@ -446,6 +470,42 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 		);
 	};
 
+	const actionBodyTemplateConsultation: (rowData: any) => JSX.Element = (rowData: any) => {
+		let tempRef: Menu = null;
+
+		return (
+			<React.Fragment>
+				<Menu
+					model={actionMenu}
+					popup
+					ref={(el) => {
+						tempRef = el;
+					}}
+				/>
+				<Button
+					label=''
+					icon='pi pi-bars'
+					onClick={(event) => {
+						tempRef.toggle(event);
+						handleConsultationMenuClick(rowData);
+					}}
+				/>
+			</React.Fragment>
+		);
+	};
+
+	const handleAppointmentTime = (e) => {
+		setAppointmentTime(e.value);
+	};
+
+	const onScheduleModalOpen = () => {
+		setAppointmentTime(moment().add(1, 'hour').format('HH:mm'));
+	};
+
+	const dateBodyTemplate: (consultation: Consultation) => String = (consultation: Consultation) => {
+		return moment(consultation.consultationDate, [CliniConstants.DATE_FORMAT_YYYY_MM_DDTHH_MM_SS_SSSZ]).format('MM/DD/YYYY hh:mm a');
+	};
+
 	return (
 		<div>
 			<ProgressSpinner
@@ -455,22 +515,42 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 			<Dialog header='Schedule Doctor Appointment' visible={showScheduleModal} style={{ width: '50vw' }} footer={renderScheduleFooter()} onHide={() => onHideSchedule()}>
 				<div className='grid'>
 					<div className='col-4'>
+						<label htmlFor='dr'>Choose Doctor</label>
+						<Dropdown
+							className='mt-1'
+							id='dr'
+							value={selectedDoctor}
+							options={doctors}
+							onChange={(e) => setSelectedDoctor(e.value)}
+							optionLabel='label'
+							placeholder='Select a doctor'
+						/>
+					</div>
+					<div className='col-4'>
 						<label htmlFor='calendar'>Select Date</label>
 						<Calendar
 							id='calendar'
+							className='mt-1'
 							value={appointmentDate}
 							onChange={(e) => setAppointmentDate(e.value)}
 							minDate={moment().toDate()}
 							yearRange='2022-2024'
 							readOnlyInput
 							disabledDates={invalidDates}
-							// showTime
-							// showWeek
 						/>
 					</div>
 					<div className='col-4'>
 						<label htmlFor='time12'>Time / 12h</label>
-						<Calendar id='time12' value={appointmentTime} onChange={(e) => setAppointmentTime(e.value)} timeOnly hourFormat='12' />
+						<Calendar
+							id='time12'
+							className='mt-1'
+							value={appointmentTime}
+							onChange={(e) => handleAppointmentTime(e)}
+							timeOnly
+							hourFormat='12'
+							stepMinute={60}
+							onShow={() => onScheduleModalOpen()}
+						/>
 					</div>
 				</div>
 			</Dialog>
@@ -513,7 +593,12 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 
 								<div style={{ padding: '.2em' }}>
 									<Avatar style={{ width: '70px' }} icon='pi' label='DOB:' />
-									<span style={{ paddingLeft: '.2em' }}> {patient.dob.toString() || 'N/A'}</span>
+									<span style={{ paddingLeft: '.2em' }}>
+										{' '}
+										{moment(patient.dob, [CliniConstants.DATE_FORMAT_MMDDYYYY, CliniConstants.DATE_FORMAT_YYYY_MM_DDTHH_MM_SS_SSSZ]).format(
+											'MM/DD/YYYY'
+										) || 'N/A'}
+									</span>
 								</div>
 
 								<div style={{ padding: '.2em' }}>
@@ -558,6 +643,19 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 										<Column field='code' header='Code'></Column>
 										<Column field='name' header='Name'></Column>
 										<Column header='Action' body={(dt) => actionBodyTemplateAllergy(dt)} exportable={false} style={{ minWidth: '0rem' }}></Column>
+									</DataTable>
+								</div>
+							</Card>
+						</div>
+
+						<div className='col-12'>
+							<Card className=''>
+								<div className='card'>
+									<DataTable value={consultations} header='Doctor Appointments' size='small' responsiveLayout='scroll'>
+										<Column field='physicianName' header="Docotor's Name"></Column>
+										<Column field='physicianLastname' header="Docotor's Lastname"></Column>
+										<Column field='consultationDate' header='Appointment Date' body={dateBodyTemplate}></Column>
+										<Column header='Action' body={(dt) => actionBodyTemplateConsultation(dt)} exportable={false} style={{ minWidth: '0rem' }}></Column>
 									</DataTable>
 								</div>
 							</Card>

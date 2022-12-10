@@ -11,6 +11,8 @@ import { Card } from 'primereact/card';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
+import { Menu } from 'primereact/menu';
+import { MenuItem } from 'primereact/menuitem';
 import { RadioButton } from 'primereact/radiobutton';
 import { Toast } from 'primereact/toast';
 import React, { useEffect, useRef, useState } from 'react';
@@ -31,36 +33,41 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 	const [date, setDate] = useState(null);
 	const [shift, setShift] = useState(null);
 	const [shiftTypes, setShiftTypes] = useState<EmployeeShiftType[]>([]);
+	const [actionMenu, setActionMenu] = useState([]);
 
 	const infoHeader: JSX.Element = <h4 style={{ textAlign: 'center' }}>Employee Information</h4>;
 	const scheduleHeader: JSX.Element = <h4 style={{ textAlign: 'center' }}>Employee Shift Management</h4>;
 	const shiftScheduleHeader: JSX.Element = <h4 style={{ textAlign: 'center' }}>Employee Shift Schedule</h4>;
 
+	const loadEmployeeAndShifts: () => void = async () => {
+		try {
+			(async () => {
+				const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/${employeeId}`;
+
+				const response: AxiosResponse<any> = await axios.post(endpoint, {});
+
+				if (response.data.data.employeeNumber) {
+					setEmployee(response.data.data);
+					setEmployeeShifts(response.data.data.employeeShift);
+					toast.current.show({ severity: 'success', summary: '', detail: 'Employee information loaded' });
+
+					if (response.data.data.clinicEmployeeId) {
+						await loadAllShifts();
+					}
+				} else {
+					toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while loading employee data' });
+				}
+			})();
+		} catch (e) {
+			toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while laoding employee information' });
+		}
+	};
+
 	useEffect(() => {
 		if (employeeId) {
-			try {
-				(async () => {
-					const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/${employeeId}`;
-
-					const response: AxiosResponse<any> = await axios.post(endpoint, {});
-
-					console.log(response);
-
-					if (response.data.data.employeeNumber) {
-						setEmployee(response.data.data);
-						setEmployeeShifts(response.data.data.employeeShift);
-						toast.current.show({ severity: 'success', summary: '', detail: 'Employee information loaded' });
-
-						if (response.data.data.clinicEmployeeId) {
-							await loadAllShifts();
-						}
-					} else {
-						toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while loading employee data' });
-					}
-				})();
-			} catch (e) {
-				toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while laoding employee information' });
-			}
+			(async () => {
+				await loadEmployeeAndShifts();
+			})();
 		}
 	}, [employeeId]);
 
@@ -69,8 +76,6 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/shift/type/all`;
 
 			const response: AxiosResponse<any> = await axios.get(endpoint);
-
-			console.log('&&&&', response);
 
 			if (response.data.data.length) {
 				setShiftTypes(response.data.data);
@@ -92,8 +97,6 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
-			console.log(`shifts for ${employeeId}`, response.data.data);
-
 			if (response.data.data.length) {
 				toast.current.show({ severity: 'success', summary: '', detail: 'Employee shifts loaded' });
 				setEmployeeShifts(response.data.data);
@@ -110,8 +113,6 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/shift/save?shiftDate=${moment(date).format(
 				'MM/DD/YYYY'
 			)}&emplId=${employeeId}&shiftTypeId=${shift}`;
-
-			console.log(endpoint);
 
 			const response: AxiosResponse<any> = await axios.post(endpoint);
 
@@ -131,9 +132,24 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 		}
 	};
 
+	const deleteShift: (emplShiftId: number) => void = async (emplShiftId: number) => {
+		try {
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/shift/remove?emplShiftId=${emplShiftId}`;
+
+			const response: AxiosResponse<any> = await axios.post(endpoint);
+
+			if (response.data.metadata.success) {
+				toast.current.show({ severity: 'success', summary: '', detail: 'Employee shift removed' });
+			} else {
+				toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while deleting shift for employee' });
+			}
+		} catch (e) {
+			toast.current.show({ severity: 'error', summary: '', detail: 'Something went wrong while deleting shift for employee' });
+		}
+	};
+
 	const onHide: () => void = () => {
 		setModalOpen(false);
-		// clearForm();
 	};
 	const openModal: () => void = async () => {
 		setModalOpen(true);
@@ -144,6 +160,46 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 			<div>
 				<Button label='Submit' icon='pi pi-check' onClick={() => saveShift()} autoFocus />
 			</div>
+		);
+	};
+
+	const handleWorkShiftMenuClick: (rawData: any) => void = async (rawData: any) => {
+		const menuItems: MenuItem[] = [];
+		const scheduleAppointment: MenuItem = {
+			label: 'Remove',
+			icon: 'pi pi-fw pi-minus',
+			command: async () => {
+				await deleteShift(rawData.emplShiftId);
+				await loadEmployeeAndShifts();
+			}
+		};
+
+		menuItems.push(scheduleAppointment);
+
+		setActionMenu(menuItems);
+	};
+
+	const actionBodyTemplateConsultation: (rowData: any) => JSX.Element = (rowData: any) => {
+		let tempRef: Menu = null;
+
+		return (
+			<React.Fragment>
+				<Menu
+					model={actionMenu}
+					popup
+					ref={(el) => {
+						tempRef = el;
+					}}
+				/>
+				<Button
+					label=''
+					icon='pi pi-bars'
+					onClick={(event) => {
+						tempRef.toggle(event);
+						handleWorkShiftMenuClick(rowData);
+					}}
+				/>
+			</React.Fragment>
 		);
 	};
 
@@ -159,14 +215,12 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 								id='calendar'
 								value={date}
 								onChange={(e) => {
-									console.log('******', e.value);
 									setDate(e.value);
 								}}
 								disabledDates={invalidDates}
 								readOnlyInput
 								yearRange='2022-2024'
 								minDate={moment().toDate()}
-								// dateFormat='MM/dd/yyyy'
 							/>
 						</div>
 						<div className='col-6'>
@@ -287,6 +341,7 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 									<Column field='shiftDate' header='Shift Date' body={dateBodyTemplate}></Column>
 									<Column field='shiftType' header='Shift Type'></Column>
 									<Column field='shiftDesc' header='Description'></Column>
+									<Column header='Action' body={(dt) => actionBodyTemplateConsultation(dt)} exportable={false} style={{ minWidth: '0rem' }}></Column>
 								</DataTable>
 							</Card>
 						</div>

@@ -94,7 +94,6 @@ const StafftDash: React.FC = () => {
 		(async () => {
 			await loadEmployees();
 		})();
-		console.log('useffect');
 	}, []);
 
 	const loadEmployees: () => Promise<any> = async () => {
@@ -160,7 +159,6 @@ const StafftDash: React.FC = () => {
 
 	const handleAddEmployee: () => void = async () => {
 		setModalOpen(false);
-		// setLoading(true);
 		const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee`;
 
 		const occupationInfo: Occupation = { occupationId: evaluateOccupationId() };
@@ -299,8 +297,6 @@ const StafftDash: React.FC = () => {
 
 		menuItems.push(viewEmpl);
 
-		console.log('menuItems', menuItems);
-
 		setActionMenu(menuItems);
 	};
 
@@ -349,10 +345,7 @@ const StafftDash: React.FC = () => {
 			<MultiSelect
 				value={options.value}
 				options={employeeTypes}
-				// itemTemplate={representativesItemTemplate}
-
 				onChange={(e) => {
-					console.log(e.value);
 					options.filterCallback(e.value);
 				}}
 				optionLabel='name'
@@ -384,7 +377,6 @@ const StafftDash: React.FC = () => {
 						rowsPerPageOptions={[5, 10, 20, 50]}
 						paginatorLeft={paginatorLeft}
 						filters={filters2}
-						// filterDisplay='row'
 						filterDisplay='menu'
 					>
 						<Column field='clinicEmployeeId' header='ID' body={(dt) => handleNoValue(dt, 'clinicEmployeeId')}></Column>

@@ -117,7 +117,6 @@ const PatientDash: React.FC = () => {
 			label: 'View',
 			icon: 'pi pi-fw pi-plus',
 			command: () => {
-				// router.push({ pathname: '/patient/info', query: { patientId: rawData.patientId } });
 				router.push({ pathname: `/patient/info/${rawData.patientId}` });
 			}
 		};
@@ -181,15 +180,7 @@ const PatientDash: React.FC = () => {
 				animationDuration='1s'
 				style={loading ? { position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)' } : { display: 'none' }}
 			/>
-			<Dialog
-				header='Enter Patient Information'
-				footer={footer}
-				// icons={myIcon}
-				visible={modalOpen}
-				style={{ width: '50vw' }}
-				modal
-				onHide={onHide}
-			>
+			<Dialog header='Enter Patient Information' footer={footer} visible={modalOpen} style={{ width: '50vw' }} modal onHide={onHide}>
 				<div className='mt-5'>
 					<div className='grid'>
 						<div className='col-4'>
