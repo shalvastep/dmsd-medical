@@ -42,7 +42,7 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 	const loadEmployeeAndShifts: () => void = async () => {
 		try {
 			(async () => {
-				const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/${employeeId}`;
+				const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/${employeeId}`;
 
 				const response: AxiosResponse<any> = await axios.post(endpoint, {});
 
@@ -73,7 +73,7 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 
 	const loadAllShifts: () => Promise<any> = async () => {
 		try {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/shift/type/all`;
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/shift/type/all`;
 
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
@@ -93,7 +93,7 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 
 	const loadShiftsByEmployeeId: (employeeId: number) => void = async (employeeId: number) => {
 		try {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/${employeeId}/shift`;
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/${employeeId}/shift`;
 
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
@@ -110,7 +110,7 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 
 	const saveShift: () => void = async () => {
 		try {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/shift/save?shiftDate=${moment(date).format(
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/shift/save?shiftDate=${moment(date).format(
 				'MM/DD/YYYY'
 			)}&emplId=${employeeId}&shiftTypeId=${shift}`;
 
@@ -134,7 +134,7 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 
 	const deleteShift: (emplShiftId: number) => void = async (emplShiftId: number) => {
 		try {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/shift/remove?emplShiftId=${emplShiftId}`;
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/shift/remove?emplShiftId=${emplShiftId}`;
 
 			const response: AxiosResponse<any> = await axios.post(endpoint);
 
@@ -257,7 +257,7 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 
 								<div style={{ padding: '.2em' }}>
 									<Avatar icon='pi pi-angle-right' style={{ width: '90px' }} label='empl #:' />
-									<span style={{ paddingLeft: '.2em' }}> {employeeId || 'N/A'}</span>
+									<span style={{ paddingLeft: '.2em' }}> {employee.employeeNumber || 'N/A'}</span>
 								</div>
 
 								<div style={{ padding: '.2em' }}>
@@ -267,7 +267,12 @@ const StaffInfo: React.FC<Props> = ({ employeeId }) => {
 
 								<div style={{ padding: '.2em' }}>
 									<Avatar style={{ width: '90px' }} icon='pi' label='DOB:' />
-									<span style={{ paddingLeft: '.2em' }}> {employee.dob.toString() || 'N/A'}</span>
+									<span style={{ paddingLeft: '.2em' }}>
+										{' '}
+										{moment(employee.dob, [CliniConstants.DATE_FORMAT_MMDDYYYY, CliniConstants.DATE_FORMAT_YYYY_MM_DDTHH_MM_SS_SSSZ]).format(
+											'MM/DD/YYYY'
+										) || 'N/A'}
+									</span>
 								</div>
 
 								<div style={{ padding: '.2em' }}>

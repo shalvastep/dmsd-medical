@@ -54,7 +54,7 @@ const PatientInfo: React.FC<Props> = ({ patientId }) => {
 		setLoading(true);
 		try {
 			// TODO occupation 2 is doctor
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/occupation/2`;
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/occupation/2`;
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
 			if (response.data.data.length) {

@@ -5,7 +5,9 @@ import { Employee } from 'models/employee.model';
 import { EmployeeSpecialty } from 'models/employee.specialty.model';
 import { NurseGrade } from 'models/nure.grade.mode';
 import { Occupation } from 'models/occupation.model';
+import CliniConstants from 'models/shared/client.constants';
 import { SurgeonContract } from 'models/surgeon.contract.model';
+import moment from 'moment';
 import { NextRouter, useRouter } from 'next/router';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
@@ -59,7 +61,7 @@ const StafftDash: React.FC = () => {
 
 	useEffect(() => {
 		(async () => {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/specialty`;
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/specialty`;
 
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
@@ -69,7 +71,7 @@ const StafftDash: React.FC = () => {
 		})();
 
 		(async () => {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/surgeon-contract`;
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/surgeon-contract`;
 
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
@@ -82,7 +84,7 @@ const StafftDash: React.FC = () => {
 		})();
 
 		(async () => {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/nurse-grades`;
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/nurse-grades`;
 
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
@@ -99,7 +101,7 @@ const StafftDash: React.FC = () => {
 	const loadEmployees: () => Promise<any> = async () => {
 		setLoading(true);
 		try {
-			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee`;
+			const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees`;
 			const response: AxiosResponse<any> = await axios.get(endpoint);
 
 			if (response.data.data.length) {
@@ -159,7 +161,7 @@ const StafftDash: React.FC = () => {
 
 	const handleAddEmployee: () => void = async () => {
 		setModalOpen(false);
-		const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee`;
+		const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees`;
 
 		const occupationInfo: Occupation = { occupationId: evaluateOccupationId() };
 		const surgeonContractInfo: SurgeonContract = surgeonContract ? { contractTypeId: occupation === 'S' ? surgeonContract.contractTypeId : null } : null;
@@ -211,7 +213,7 @@ const StafftDash: React.FC = () => {
 	};
 
 	const removeEmployee: (employeeId: number) => void = async (employeeId: number) => {
-		const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employee/remove/${employeeId}`;
+		const endpoint: string = `${config.serverHost}/${config.serverApiPath}/clinic-employees/remove/${employeeId}`;
 
 		try {
 			setLoading(true);
@@ -381,7 +383,13 @@ const StafftDash: React.FC = () => {
 					>
 						<Column field='clinicEmployeeId' header='ID' body={(dt) => handleNoValue(dt, 'clinicEmployeeId')}></Column>
 						<Column field='employeeNumber' header='Employee #' body={(dt) => handleNoValue(dt, 'employeeNumber')}></Column>
-						<Column field='dob' header='DOB' body={(dt) => handleNoValue(dt, 'dob')}></Column>
+						<Column
+							field='dob'
+							header='DOB'
+							body={(dt) =>
+								moment(dt.dob, [CliniConstants.DATE_FORMAT_MMDDYYYY, CliniConstants.DATE_FORMAT_YYYY_MM_DDTHH_MM_SS_SSSZ]).format('MM/DD/YYYY') || 'N/A'
+							}
+						></Column>
 						<Column field='firstName' header='First Name' body={(dt) => handleNoValue(dt, 'firstName')}></Column>
 						<Column field='lastName' header='Last Name' body={(dt) => handleNoValue(dt, 'lastName')}></Column>
 						<Column field='ssn' header='SSN' body={(dt) => handleNoValue(dt, 'ssn')}></Column>
