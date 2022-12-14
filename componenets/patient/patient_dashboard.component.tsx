@@ -154,6 +154,7 @@ const PatientDash: React.FC = () => {
 		<div>
 			<Toast ref={toast} />
 			<div className='card' style={{ height: 'calc(100vh - 145px)' }}>
+				<h2 style={{ textAlign: 'center' }}>Patient Management Dashboard</h2>
 				<DataTable
 					value={patients}
 					responsiveLayout='scroll'

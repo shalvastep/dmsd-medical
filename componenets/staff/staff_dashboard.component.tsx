@@ -366,6 +366,7 @@ const StafftDash: React.FC = () => {
 			<Toast ref={toast} />
 			<div>
 				<div className='card' style={{ height: 'calc(100vh - 145px)' }}>
+					<h2 style={{ textAlign: 'center' }}>Employee Management Dashboard</h2>
 					<DataTable
 						value={clinicEmployeesData}
 						responsiveLayout='scroll'
